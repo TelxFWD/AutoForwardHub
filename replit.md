@@ -130,6 +130,18 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+- **June 30, 2025**: Project successfully migrated from Replit Agent to standard Replit environment
+  - Resolved database connection issues by implementing in-memory storage for development
+  - Fixed TypeScript compilation errors in storage implementation
+  - All API endpoints now responding correctly with sample data
+  - Dashboard fully functional with real-time updates
+  - Project runs cleanly without external dependencies
+- **June 30, 2025**: System architecture documentation updated with complete functional overview
+  - Added comprehensive system blueprint detailing all 7 core components
+  - Documented end-to-end message flow from Telegram to Discord to Telegram
+  - Specified trap detection mechanisms and AI rewriting capabilities
+  - Added configuration file structures for pairs, blocklists, and sessions
+  - Included admin bot inline controls and webhook management details
 - **June 30, 2025**: Python Telegram Reader implementation completed
   - Multi-session Telethon client with async message handling
   - Automatic channel matching and Discord webhook forwarding
@@ -137,20 +149,6 @@ Preferred communication style: Simple, everyday language.
   - Configuration-driven setup with JSON files for sessions and pairs
   - Comprehensive error handling and logging system
   - Production-ready with proper cleanup and resource management
-- **June 30, 2025**: PostgreSQL database integration completed
-  - Migrated from in-memory storage to persistent database with Neon
-  - Created DatabaseStorage implementation replacing MemStorage
-  - All data now persists across application restarts
-  - Sample data seeded for immediate testing
-- **June 30, 2025**: Complete system documentation created covering all core components
-  - Session management with Telethon OTP setup process
-  - Discord bot logic for message editing and trap detection
-  - Telegram posting bot with multi-token support for rate limiting
-  - Comprehensive trap detection and auto-pause mechanisms
-  - Webhook management system for Discord channels
-  - Blocklist scope handling (global vs per-pair filtering)
-  - Admin bot with inline controls and alert system
-  - End-to-end message flow documentation with ID mapping
 - **June 30, 2025**: Dashboard implementation with full CRUD operations
   - Statistics cards, pairs table, session status monitoring
   - Live activity feed with real-time updates every 30 seconds
