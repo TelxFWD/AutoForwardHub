@@ -37,17 +37,51 @@ The system uses five main entities:
 
 ### Core Features
 1. **Pair Management**: Create and configure forwarding routes between platforms
-2. **Session Control**: Manage multiple Telegram userbot sessions
-3. **Content Filtering**: AI-powered content moderation with blocklist management
-4. **Live Monitoring**: Real-time activity feed and system statistics
-5. **Admin Controls**: Bulk operations for pausing/resuming pairs
+2. **Session Control**: Manage multiple Telegram userbot sessions with OTP authentication
+3. **Content Filtering**: AI-powered content moderation with global and per-pair blocklists
+4. **Trap Detection**: Automated detection of text patterns, image hashes, and edit-based traps
+5. **Live Monitoring**: Real-time activity feed and system statistics
+6. **Admin Controls**: Telegram bot with inline controls for pause/resume operations
+7. **Message Mapping**: Cross-platform message synchronization and edit tracking
 
 ### Data Storage Strategy
 - **In-Memory Storage**: Development implementation using Map-based storage
 - **PostgreSQL**: Production database with Drizzle migrations
 - **Session Store**: PostgreSQL-backed session storage using connect-pg-simple
 
-## Data Flow
+## System Message Flow
+
+### End-to-End Message Lifecycle
+1. **Telegram Reader (Telethon)**: Userbot sessions read messages from source channels
+2. **Discord Webhook**: Messages posted to designated Discord channels
+3. **Discord Bot (discord.py)**: Monitors webhook channels for:
+   - AI rewriting using GPT or local models
+   - Trap detection (text patterns, image hashes, edit frequency)
+   - Message edit/delete tracking via ID mapping
+4. **Telegram Poster Bot**: Cleaned messages sent to destination channels
+5. **Admin Bot**: Notifications sent for trap detection and auto-pause events
+6. **Message Mapping**: Cross-platform synchronization stored in message_map.json
+
+### Trap Detection System
+- **Text Traps**: Patterns like `/ *`, `1`, `leak`, `trap`
+- **Image Traps**: MD5 hash comparison and OCR analysis
+- **Edit Traps**: Messages edited 3+ times trigger alerts
+- **Auto-Pause**: Pairs automatically paused for 2-3 minutes after threshold exceeded
+- **Recovery**: Automatic resume after cooldown period
+
+### Session Management
+- **OTP Authentication**: Telethon sessions created via phone verification
+- **Load Balancing**: Multiple session files per account for rate distribution
+- **Status Monitoring**: Active/inactive session tracking in dashboard
+- **File Storage**: Session files stored as `.session` format
+
+### Blocklist Architecture
+- **Global Scope**: Applied to all pairs system-wide
+- **Per-Pair Scope**: Specific filtering rules for individual forwarding routes
+- **Runtime Merging**: Combined filtering using both global and pair-specific rules
+- **Content Types**: Text patterns, image hashes, trap detection rules
+
+## Dashboard Data Flow
 
 1. **Frontend → Backend**: React components make API calls using TanStack Query
 2. **Backend → Database**: Express routes interact with Drizzle ORM
@@ -96,20 +130,25 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+- **June 30, 2025**: PostgreSQL database integration completed
+  - Migrated from in-memory storage to persistent database with Neon
+  - Created DatabaseStorage implementation replacing MemStorage
+  - All data now persists across application restarts
+  - Sample data seeded for immediate testing
 - **June 30, 2025**: Complete system documentation created covering all core components
-  - Session management with Telethon OTP setup
+  - Session management with Telethon OTP setup process
   - Discord bot logic for message editing and trap detection
-  - Telegram posting bot with multi-token support
+  - Telegram posting bot with multi-token support for rate limiting
   - Comprehensive trap detection and auto-pause mechanisms
   - Webhook management system for Discord channels
-  - Blocklist scope handling (global vs per-pair)
+  - Blocklist scope handling (global vs per-pair filtering)
   - Admin bot with inline controls and alert system
-  - End-to-end message flow documentation
+  - End-to-end message flow documentation with ID mapping
 - **June 30, 2025**: Dashboard implementation with full CRUD operations
   - Statistics cards, pairs table, session status monitoring
-  - Live activity feed with real-time updates
-  - Add pair modal with form validation
-  - Sidebar navigation and responsive design
+  - Live activity feed with real-time updates every 30 seconds
+  - Add pair modal with form validation using Zod schemas
+  - Sidebar navigation and responsive design with Tailwind CSS
 
 ## User Preferences
 

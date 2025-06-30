@@ -100,7 +100,7 @@ export class DatabaseStorage implements IStorage {
 
   async deletePair(id: number): Promise<boolean> {
     const result = await db.delete(pairs).where(eq(pairs.id, id));
-    const deleted = result.rowCount > 0;
+    const deleted = (result.rowCount ?? 0) > 0;
     
     if (deleted) {
       await this.updateSystemStatsFromData();
@@ -148,7 +148,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteSession(id: number): Promise<boolean> {
     const result = await db.delete(sessions).where(eq(sessions.id, id));
-    const deleted = result.rowCount > 0;
+    const deleted = (result.rowCount ?? 0) > 0;
     
     if (deleted) {
       await this.updateSystemStatsFromData();
@@ -183,7 +183,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteBlocklist(id: number): Promise<boolean> {
     const result = await db.delete(blocklists).where(eq(blocklists.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   // Activities
