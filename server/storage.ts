@@ -183,8 +183,8 @@ export class MemStorage implements IStorage {
     this.systemStats = {
       id: 1,
       activePairs: Array.from(this.pairs.values()).filter(p => p.status === "active").length,
-      totalMessages: Array.from(this.pairs.values()).reduce((sum, p) => sum + p.messageCount, 0),
-      blockedMessages: Array.from(this.pairs.values()).reduce((sum, p) => sum + p.blockedCount, 0),
+      totalMessages: Array.from(this.pairs.values()).reduce((sum, p) => sum + (p.messageCount || 0), 0),
+      blockedMessages: Array.from(this.pairs.values()).reduce((sum, p) => sum + (p.blockedCount || 0), 0),
       activeSessions: Array.from(this.sessions.values()).filter(s => s.status === "active").length,
       lastUpdated: new Date(),
     };
@@ -220,6 +220,8 @@ export class MemStorage implements IStorage {
     const pair: Pair = {
       ...insertPair,
       id,
+      status: insertPair.status || "active",
+      enableAI: insertPair.enableAI || false,
       messageCount: 0,
       blockedCount: 0,
       createdAt: new Date(),
@@ -266,6 +268,7 @@ export class MemStorage implements IStorage {
     const session: Session = {
       ...insertSession,
       id,
+      status: insertSession.status || "active",
       lastActive: new Date(),
       createdAt: new Date(),
     };
@@ -314,6 +317,8 @@ export class MemStorage implements IStorage {
     const blocklist: Blocklist = {
       ...insertBlocklist,
       id,
+      pairId: insertBlocklist.pairId ?? null,
+      isActive: insertBlocklist.isActive ?? true,
       createdAt: new Date(),
     };
     this.blocklists.set(id, blocklist);
@@ -336,6 +341,10 @@ export class MemStorage implements IStorage {
     const activity: Activity = {
       ...insertActivity,
       id,
+      pairId: insertActivity.pairId ?? null,
+      sessionId: insertActivity.sessionId ?? null,
+      details: insertActivity.details ?? null,
+      severity: insertActivity.severity || "info",
       createdAt: new Date(),
     };
     this.activities.set(id, activity);
@@ -354,8 +363,8 @@ export class MemStorage implements IStorage {
 
   private async updateSystemStatsFromData(): Promise<void> {
     const activePairs = Array.from(this.pairs.values()).filter(p => p.status === "active").length;
-    const totalMessages = Array.from(this.pairs.values()).reduce((sum, p) => sum + p.messageCount, 0);
-    const blockedMessages = Array.from(this.pairs.values()).reduce((sum, p) => sum + p.blockedCount, 0);
+    const totalMessages = Array.from(this.pairs.values()).reduce((sum, p) => sum + (p.messageCount || 0), 0);
+    const blockedMessages = Array.from(this.pairs.values()).reduce((sum, p) => sum + (p.blockedCount || 0), 0);
     const activeSessions = Array.from(this.sessions.values()).filter(s => s.status === "active").length;
 
     this.systemStats = {

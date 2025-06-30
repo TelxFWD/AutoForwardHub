@@ -94,7 +94,26 @@ The system uses five main entities:
 
 Preferred communication style: Simple, everyday language.
 
-## Changelog
+## Recent Changes
 
-Changelog:
-- June 30, 2025. Initial setup
+- **June 30, 2025**: Complete system documentation created covering all core components
+  - Session management with Telethon OTP setup
+  - Discord bot logic for message editing and trap detection
+  - Telegram posting bot with multi-token support
+  - Comprehensive trap detection and auto-pause mechanisms
+  - Webhook management system for Discord channels
+  - Blocklist scope handling (global vs per-pair)
+  - Admin bot with inline controls and alert system
+  - End-to-end message flow documentation
+- **June 30, 2025**: Dashboard implementation with full CRUD operations
+  - Statistics cards, pairs table, session status monitoring
+  - Live activity feed with real-time updates
+  - Add pair modal with form validation
+  - Sidebar navigation and responsive design
+
+## User Preferences
+
+- **Communication Style**: Simple, everyday language for non-technical users
+- **Documentation**: Technical and developer-friendly with clear markdown structure
+- **UI Design**: Professional dashboard with blue primary color scheme
+- **Architecture**: Full-stack TypeScript with React frontend and Express backend
