@@ -1,19 +1,24 @@
 import { useState } from "react";
-import Sidebar from "@/components/sidebar";
 import StatsCards from "@/components/stats-cards";
 import PairsTable from "@/components/pairs-table";
 import SessionStatus from "@/components/session-status";
+import SessionControls from "@/components/session-controls";
 import BlocklistSummary from "@/components/blocklist-summary";
+import TrapDetection from "@/components/trap-detection";
 import ActivityFeed from "@/components/activity-feed";
 import AddPairModal from "@/components/add-pair-modal";
 import { Button } from "@/components/ui/button";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Play, Pause, UserCircle } from "lucide-react";
+import { Play, Pause, UserCircle, Plus } from "lucide-react";
 import type { SystemStats } from "@shared/schema";
 
-export default function Dashboard() {
+interface DashboardProps {
+  activeTab?: string;
+}
+
+export default function Dashboard({ activeTab = "dashboard" }: DashboardProps) {
   const [isAddPairModalOpen, setIsAddPairModalOpen] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -62,165 +67,199 @@ export default function Dashboard() {
 
   const isGloballyActive = stats && stats.activePairs > 0;
 
-  return (
-    <div className="flex h-screen bg-gray-50">
-      <Sidebar />
+  const getPageTitle = () => {
+    switch (activeTab) {
+      case "pairs": return "Pair Management";
+      case "sessions": return "Session Control";
+      case "blocklist": return "Blocklist Manager";
+      case "monitoring": return "Live Monitoring";
+      case "webhooks": return "Discord Webhooks";
+      case "settings": return "Settings";
+      default: return "Dashboard Overview";
+    }
+  };
+
+  const getPageDescription = () => {
+    switch (activeTab) {
+      case "pairs": return "Manage message forwarding pairs between Telegram and Discord";
+      case "sessions": return "Control Telegram userbot sessions for reading private channels";
+      case "blocklist": return "Configure trap detection and content filtering rules";
+      case "monitoring": return "Monitor system activity and message flow in real-time";
+      case "webhooks": return "Manage Discord webhook configurations and monitoring";
+      case "settings": return "Configure system settings and preferences";
+      default: return "Monitor and control your message forwarding operations";
+    }
+  };
+
+  const renderMainContent = () => {
+    switch (activeTab) {
+      case "pairs":
+        return (
+          <div className="space-y-6">
+            <PairsTable onAddPair={() => setIsAddPairModalOpen(true)} />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <SessionStatus />
+              <BlocklistSummary />
+            </div>
+          </div>
+        );
       
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Header Bar */}
-        <header className="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900">Dashboard Overview</h2>
-              <p className="text-sm text-gray-600">Monitor and control your message forwarding operations</p>
-            </div>
-            <div className="flex items-center space-x-4">
-              {/* Global Status */}
-              <div className="flex items-center space-x-2">
-                <span className="text-sm font-medium text-gray-700">Global Status:</span>
-                <div className="flex items-center space-x-2">
-                  <div className={`w-3 h-3 rounded-full ${isGloballyActive ? 'bg-success' : 'bg-gray-400'}`}></div>
-                  <span className={`text-sm font-medium ${isGloballyActive ? 'text-success' : 'text-gray-500'}`}>
-                    {isGloballyActive ? 'Active' : 'Inactive'}
-                  </span>
-                </div>
-              </div>
-              
-              {/* Global Controls */}
-              {isGloballyActive ? (
-                <Button 
-                  onClick={() => pauseAllMutation.mutate()}
-                  disabled={pauseAllMutation.isPending}
-                  className="bg-primary text-white hover:bg-blue-700"
-                >
-                  <Pause className="w-4 h-4 mr-2" />
-                  Pause All
-                </Button>
-              ) : (
-                <Button 
-                  onClick={() => resumeAllMutation.mutate()}
-                  disabled={resumeAllMutation.isPending}
-                  className="bg-secondary text-white hover:bg-green-700"
-                >
-                  <Play className="w-4 h-4 mr-2" />
-                  Resume All
-                </Button>
-              )}
-              
-              <Button variant="outline" className="text-gray-700">
-                <UserCircle className="w-4 h-4 mr-2" />
-                Admin
-              </Button>
+      case "sessions":
+        return (
+          <div className="space-y-6">
+            <SessionControls />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <SessionStatus />
+              <ActivityFeed />
             </div>
           </div>
-        </header>
-
-        {/* Main Content */}
-        <main className="flex-1 overflow-y-auto p-6">
-          {/* Statistics Cards */}
-          <StatsCards />
-
-          {/* Quick Actions & System Health */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-            {/* Quick Actions Panel */}
-            <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
-              <div className="space-y-3">
-                <Button 
-                  onClick={() => setIsAddPairModalOpen(true)}
-                  className="w-full bg-primary text-white hover:bg-blue-700"
-                >
-                  <i className="fas fa-plus mr-2"></i>
-                  Create New Pair
-                </Button>
-                <Button className="w-full bg-secondary text-white hover:bg-green-700">
-                  <i className="fas fa-user-plus mr-2"></i>
-                  Add Session
-                </Button>
-                <Button variant="outline" className="w-full">
-                  <i className="fas fa-download mr-2"></i>
-                  Export Config
-                </Button>
-              </div>
-            </div>
-
-            {/* System Health */}
-            <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">System Health</h3>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Telegram Reader</span>
-                  <div className="flex items-center space-x-2">
-                    <div className="w-2 h-2 bg-success rounded-full"></div>
-                    <span className="text-sm font-medium text-success">Online</span>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Discord Bot</span>
-                  <div className="flex items-center space-x-2">
-                    <div className="w-2 h-2 bg-success rounded-full"></div>
-                    <span className="text-sm font-medium text-success">Online</span>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Telegram Poster</span>
-                  <div className="flex items-center space-x-2">
-                    <div className="w-2 h-2 bg-success rounded-full"></div>
-                    <span className="text-sm font-medium text-success">Online</span>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Admin Bot</span>
-                  <div className="flex items-center space-x-2">
-                    <div className="w-2 h-2 bg-warning rounded-full"></div>
-                    <span className="text-sm font-medium text-warning">Reconnecting</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Recent Alerts */}
-            <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Alerts</h3>
-              <div className="space-y-3">
-                <div className="flex items-start space-x-3 p-3 bg-red-50 rounded-lg border border-red-200">
-                  <i className="fas fa-exclamation-triangle text-error text-sm mt-0.5"></i>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-900">Trap detected in GBPUSD</p>
-                    <p className="text-xs text-gray-600">2 minutes ago</p>
-                  </div>
-                </div>
-                <div className="flex items-start space-x-3 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
-                  <i className="fas fa-pause-circle text-warning text-sm mt-0.5"></i>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-900">XAUUSD pair auto-paused</p>
-                    <p className="text-xs text-gray-600">5 minutes ago</p>
-                  </div>
-                </div>
-                <div className="flex items-start space-x-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                  <i className="fas fa-info-circle text-primary text-sm mt-0.5"></i>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-900">New session added</p>
-                    <p className="text-xs text-gray-600">10 minutes ago</p>
-                  </div>
-                </div>
-              </div>
+        );
+      
+      case "blocklist":
+        return <TrapDetection />;
+      
+      case "monitoring":
+        return (
+          <div className="space-y-6">
+            <ActivityFeed />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <SessionStatus />
+              <BlocklistSummary />
             </div>
           </div>
+        );
+      
+      default:
+        return (
+          <>
+            {/* Quick Actions & System Health */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+              {/* Quick Actions Panel */}
+              <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+                <div className="space-y-3">
+                  <Button 
+                    onClick={() => setIsAddPairModalOpen(true)}
+                    className="w-full bg-primary text-white hover:bg-blue-700"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Create New Pair
+                  </Button>
+                  <Button className="w-full" variant="outline">
+                    Add Session
+                  </Button>
+                  <Button variant="outline" className="w-full">
+                    Export Config
+                  </Button>
+                </div>
+              </div>
 
-          {/* Active Pairs Table */}
-          <PairsTable onAddPair={() => setIsAddPairModalOpen(true)} />
+              {/* System Health */}
+              <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">System Health</h3>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Telegram Reader</span>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <span className="text-sm font-medium text-green-600">Online</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Discord Bot</span>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <span className="text-sm font-medium text-green-600">Online</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Admin Bot</span>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                      <span className="text-sm font-medium text-yellow-600">Setup Required</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
 
-          {/* Session Management & Blocklist */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            <SessionStatus />
-            <BlocklistSummary />
+              {/* Recent Alerts */}
+              <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Alerts</h3>
+                <div className="space-y-3">
+                  <div className="text-center py-4 text-gray-500">
+                    No recent alerts
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Main Dashboard Content */}
+            <PairsTable onAddPair={() => setIsAddPairModalOpen(true)} />
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+              <SessionStatus />
+              <BlocklistSummary />
+            </div>
+
+            <ActivityFeed />
+          </>
+        );
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">{getPageTitle()}</h1>
+          <p className="text-gray-600">{getPageDescription()}</p>
+        </div>
+        <div className="flex items-center space-x-4">
+          {/* Global Status */}
+          <div className="flex items-center space-x-2">
+            <span className="text-sm font-medium text-gray-700">Global Status:</span>
+            <div className="flex items-center space-x-2">
+              <div className={`w-3 h-3 rounded-full ${isGloballyActive ? 'bg-green-500' : 'bg-gray-400'}`}></div>
+              <span className={`text-sm font-medium ${isGloballyActive ? 'text-green-600' : 'text-gray-500'}`}>
+                {isGloballyActive ? 'Active' : 'Inactive'}
+              </span>
+            </div>
           </div>
-
-          {/* Live Activity Feed */}
-          <ActivityFeed />
-        </main>
+          
+          {/* Global Controls */}
+          {isGloballyActive ? (
+            <Button 
+              onClick={() => pauseAllMutation.mutate()}
+              disabled={pauseAllMutation.isPending}
+              className="bg-primary text-white hover:bg-blue-700"
+            >
+              <Pause className="w-4 h-4 mr-2" />
+              Pause All
+            </Button>
+          ) : (
+            <Button 
+              onClick={() => resumeAllMutation.mutate()}
+              disabled={resumeAllMutation.isPending}
+              className="bg-green-600 text-white hover:bg-green-700"
+            >
+              <Play className="w-4 h-4 mr-2" />
+              Resume All
+            </Button>
+          )}
+          
+          <Button variant="outline" className="text-gray-700">
+            <UserCircle className="w-4 h-4 mr-2" />
+            Admin
+          </Button>
+        </div>
       </div>
+
+      {/* Statistics Cards */}
+      <StatsCards />
+
+      {/* Main Content */}
+      {renderMainContent()}
 
       {/* Add Pair Modal */}
       <AddPairModal 
